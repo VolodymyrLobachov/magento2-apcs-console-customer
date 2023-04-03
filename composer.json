@@ -1,0 +1,35 @@
+{
+    "name": "apcs/console-customer",
+    "description":"This module was created for easy creation of customers",
+    "keywords": [
+        "magento 2",
+        "magento 2 extension",
+        "Create customer via console",
+        "APCS"
+    ],
+    "require": {
+        "php": ">=7.4",
+        "magento/framework": ">=104.0",
+        "apcs/base-logger": ">=1.0"
+    },
+    "type": "magento2-module",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "authors": [
+        {
+            "name": "Volodymyr Lobachov",
+            "email": "volodymyr.lobachov@gmail.com",
+            "role": "Magento 2 Developer"
+        }
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "APCS\\ConsoleCustomer\\": ""
+        }
+    }
+}
