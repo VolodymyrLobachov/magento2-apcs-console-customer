@@ -9,7 +9,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "magento/framework": ">=104.0",
+        "magento/framework": ">=100.1.0",
         "apcs/base-logger": ">=1.0"
     },
     "type": "magento2-module",
