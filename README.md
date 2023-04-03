@@ -13,6 +13,14 @@ How to install
   composer require apcs/console-customer
 ```
     
+## Documentation
+
+To create a customer, you can use the following command
+
+```bash
+  php bin/magento apcs:create:customer --firstname=John --lastname=Doe --email=john@doe.com --password=adMin235
+
+```
 ## Author
 
 - [@VolodymyrLobachov](https://github.com/VolodymyrLobachov)
