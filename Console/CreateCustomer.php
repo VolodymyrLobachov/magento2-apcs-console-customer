@@ -14,6 +14,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CreateCustomer extends Command
 {
+    public const SUCCESS_CODE = 0;
+    public const FAILURE_CODE = 1;
+
     public const FIRSTNAME = 'firstname';
     public const LASTNAME = 'lastname';
     public const EMAIL = 'email';
@@ -107,9 +110,9 @@ class CreateCustomer extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return bool
+     * @return int 0 if everything went fine, or an exit code
      */
-    protected function execute(InputInterface $input, OutputInterface $output): bool
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $this->validator->validate($input->getOptions());
@@ -138,14 +141,14 @@ class CreateCustomer extends Command
                 $output->writeln('<info>The customer successfully created!</info>');
                 $output->writeln('<info>**********************************</info>');
 
-                return true;
+                return self::SUCCESS_CODE;
             } else {
                 throw new LocalizedException(__('Customer with this email already exists'));
             }
         } catch (LocalizedException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
             $this->apcsLogger->error($e->getMessage());
-            return false;
+            return self::FAILURE_CODE;
         }
     }
 }
