@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace APCS\ConsoleCustomer\Console;
@@ -11,19 +12,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use APCS\ConsoleCustomer\Api\ConsoleCustomerInterface;
 
 class CreateCustomer extends Command
 {
-    public const SUCCESS_CODE = 0;
-    public const FAILURE_CODE = 1;
-
-    public const FIRSTNAME = 'firstname';
-    public const LASTNAME = 'lastname';
-    public const EMAIL = 'email';
-    public const PASSWORD = 'password';
-    public const WEBSITE = 'website-id';
-    public const SHOW_ALL_CUSTOMER_DATA = 'all-data';
-
     /**
      * @var CustomerCreator
      */
@@ -65,37 +57,37 @@ class CreateCustomer extends Command
         $this->setName('apcs:create:customer');
         $this->setDescription('This command create new Customer via console');
         $this->addOption(
-            self::FIRSTNAME,
+            ConsoleCustomerInterface::FIRSTNAME,
             null,
             InputOption::VALUE_REQUIRED,
             'Customer firstname'
         );
         $this->addOption(
-            self::LASTNAME,
+            ConsoleCustomerInterface::LASTNAME,
             null,
             InputOption::VALUE_REQUIRED,
             'Customer lastname'
         );
         $this->addOption(
-            self::EMAIL,
+            ConsoleCustomerInterface::EMAIL,
             null,
             InputOption::VALUE_REQUIRED,
             'Customer email'
         );
         $this->addOption(
-            self::PASSWORD,
+            ConsoleCustomerInterface::PASSWORD,
             null,
             InputOption::VALUE_REQUIRED,
             'Customer password'
         );
         $this->addOption(
-            self::WEBSITE,
+            ConsoleCustomerInterface::WEBSITE,
             null,
             InputOption::VALUE_REQUIRED,
             'Website'
         );
         $this->addOption(
-            self::SHOW_ALL_CUSTOMER_DATA,
+            ConsoleCustomerInterface::SHOW_ALL_CUSTOMER_DATA,
             null,
             InputOption::VALUE_OPTIONAL,
             'Show all customer data in console',
@@ -116,39 +108,37 @@ class CreateCustomer extends Command
     {
         try {
             $this->validator->validate($input->getOptions());
+
             $customer = $this->customerCreator->execute([
-                'firstname' => $input->getOption('firstname'),
-                'lastname' => $input->getOption('lastname'),
-                'email' => $input->getOption('email'),
-                'password' => $input->getOption('password')
+                'firstname' => $input->getOption(ConsoleCustomerInterface::FIRSTNAME),
+                'lastname' => $input->getOption(ConsoleCustomerInterface::LASTNAME),
+                'email' => $input->getOption(ConsoleCustomerInterface::EMAIL),
+                'password' => $input->getOption(ConsoleCustomerInterface::PASSWORD)
             ]);
 
-            if ($customer) {
-                if ($input->getOption(self::SHOW_ALL_CUSTOMER_DATA)) {
-                    foreach ($customer->getData() as $attName => $value) {
-                        $output->writeln('<comment>Customer Attribute ' . $attName . ' : ' . $value . '</comment>');
-                    }
+            if ($input->getOption(ConsoleCustomerInterface::SHOW_ALL_CUSTOMER_DATA)) {
+                foreach ($customer->getData() as $attName => $value) {
+                    $output->writeln('<comment>Customer Attribute ' . $attName . ' : ' . $value . '</comment>');
                 }
-
-                $output->writeln('<info>Customer ids`' . $customer->getId() . '`</info>');
-                $output->writeln('<info>Customer providet Name`' . $input->getOption('firstname') . '`</info>');
-                $output->writeln('<info>Customer providet Last Name`' . $input->getOption('lastname') . '`</info>');
-                $output->writeln('<info>Customer providet Email`' . $input->getOption('email') . '`</info>');
-                $output->writeln('<info>Customer WebsiteId`' . $customer->getWebsiteId() . '`</info>');
-                $output->writeln('<info>Customer providet Password`' . $input->getOption('password') . '`</info>');
-
-                $output->writeln('<info>**********************************</info>');
-                $output->writeln('<info>The customer successfully created!</info>');
-                $output->writeln('<info>**********************************</info>');
-
-                return self::SUCCESS_CODE;
-            } else {
-                throw new LocalizedException(__('Customer with this email already exists'));
             }
+
+            $output->writeln('<info>Customer ids`' . $customer->getId() . '`</info>');
+            $output->writeln('<info>Customer providet Name`' . $input->getOption(ConsoleCustomerInterface::FIRSTNAME) . '`</info>');
+            $output->writeln('<info>Customer providet Last Name`' . $input->getOption(ConsoleCustomerInterface::LASTNAME) . '`</info>');
+            $output->writeln('<info>Customer providet Email`' . $input->getOption(ConsoleCustomerInterface::EMAIL) . '`</info>');
+            $output->writeln('<info>Customer WebsiteId`' . $customer->getWebsiteId() . '`</info>');
+            $output->writeln('<info>Customer providet Password`' . $input->getOption(ConsoleCustomerInterface::PASSWORD) . '`</info>');
+
+            $output->writeln('<info>**********************************</info>');
+            $output->writeln('<info>The customer successfully created!</info>');
+            $output->writeln('<info>**********************************</info>');
+
+            return ConsoleCustomerInterface::SUCCESS_CODE;
         } catch (LocalizedException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
             $this->apcsLogger->error($e->getMessage());
-            return self::FAILURE_CODE;
+
+            return ConsoleCustomerInterface::FAILURE_CODE;
         }
     }
 }

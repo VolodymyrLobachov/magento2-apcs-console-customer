@@ -1,10 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace APCS\ConsoleCustomer\Model;
 
+use APCS\BaseLogger\Logger\Logger;
+use APCS\ConsoleCustomer\Api\ConsoleCustomerInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\State\InputMismatchException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
@@ -13,7 +17,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Exception\LocalizedException;
-use APCS\BaseLogger\Logger\Logger;
+use Magento\Framework\App\Area;
 
 class CustomerCreator
 {
@@ -83,25 +87,27 @@ class CustomerCreator
      * Creating a customer
      *
      * @param array $customerData
-     * @return Customer|null
+     * @return Customer
+     * @throws InputException
+     * @throws InputMismatchException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function execute(array $customerData): ?Customer
+    public function execute(array $customerData): Customer
     {
-        try {
-            if (!$this->getCustomer($customerData['email'])->getData()) {
-                $this->state->setAreaCode('frontend');
-                if (isset($customerData['website-id'])) {
-                    $this->createCustomer($customerData, $customerData['website-id']);
-                } else {
-                    $this->createCustomer($customerData);
-                }
-                //check if customer created
-                return $this->getCustomer($customerData['email']);
-            }
-        } catch (LocalizedException $localizedException) {
-            $this->apcsLogger->error($localizedException->getMessage());
+        if ($this->getCustomer($customerData[ConsoleCustomerInterface::EMAIL])->getData()) {
+            throw new LocalizedException(__('Customer with the same email already exist'));
         }
-        return null;
+
+        $this->state->setAreaCode(Area::AREA_FRONTEND);
+
+        if (isset($customerData[ConsoleCustomerInterface::WEBSITE])) {
+            $this->createCustomer($customerData, $customerData[ConsoleCustomerInterface::WEBSITE]);
+        } else {
+            $this->createCustomer($customerData);
+        }
+
+        return $this->getCustomer($customerData[ConsoleCustomerInterface::EMAIL]);
     }
 
     /**
@@ -119,12 +125,14 @@ class CustomerCreator
         if ($websiteId === null) {
             $websiteId = $this->getWebsiteId();
         }
+
         $customer = $this->customerInterfaceFactory->create();
         $customer->setWebsiteId($websiteId);
-        $customer->setEmail($customerData['email']);
-        $customer->setFirstname($customerData['firstname']);
-        $customer->setLastname($customerData['lastname']);
-        $hashedPassword = $this->encryptor->getHash($customerData['password'], true);
+        $customer->setEmail($customerData[ConsoleCustomerInterface::EMAIL]);
+        $customer->setFirstname($customerData[ConsoleCustomerInterface::FIRSTNAME]);
+        $customer->setLastname($customerData[ConsoleCustomerInterface::LASTNAME]);
+
+        $hashedPassword = $this->encryptor->getHash($customerData[ConsoleCustomerInterface::PASSWORD], true);
 
         $this->customerRepository->save($customer, $hashedPassword);
     }
@@ -133,35 +141,25 @@ class CustomerCreator
      * Get Customer
      *
      * @param string $email
-     * @return Customer|null
+     * @return Customer
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getCustomer(string $email): ?Customer
+    public function getCustomer(string $email): Customer
     {
-        try {
-            $websiteId = $this->getWebsiteId();
-            $customer = $this->customerFactory->create();
-            $customer->setWebsiteId($websiteId)->loadByEmail($email);
-
-            return $customer;
-        } catch (LocalizedException $localizedException) {
-            $this->apcsLogger->error($localizedException->getMessage());
-            return null;
-        }
+        $customer = $this->customerFactory->create();
+        return $customer->setWebsiteId($this->getWebsiteId())->loadByEmail($email);
     }
 
     /**
      * Get Website id
      *
-     * @return int|null
+     * @return int
+     * @throws NoSuchEntityException
      */
-    public function getWebsiteId(): ?int
+    public function getWebsiteId(): int
     {
-        try {
-            $storeId = $this->storeManager->getStore()->getId();
-            return (int)$this->storeManager->getStore($storeId)->getWebsiteId();
-        } catch (LocalizedException $localizedException) {
-            $this->apcsLogger->error($localizedException->getMessage());
-            return null;
-        }
+        $storeId = $this->storeManager->getStore()->getId();
+        return (int)$this->storeManager->getStore($storeId)->getWebsiteId();
     }
 }
