@@ -10,7 +10,9 @@ This module was created for easy creation of customers.
 How to install
 
 ```bash
-  composer require apcs/console-customer
+
+composer require apcs/console-customer
+
 ```
     
 ## Documentation
@@ -19,7 +21,7 @@ To create a customer, you can use the following command
 
 ```bash
 
-  php bin/magento apcs:create:customer --firstname=John --lastname=Doe --email=john@doe.com --password=adMin235
+php bin/magento apcs:create:customer --firstname=John --lastname=Doe --email=john@doe.com --password=adMin235
 
 ```
 
